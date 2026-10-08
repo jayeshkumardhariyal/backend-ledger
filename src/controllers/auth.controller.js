@@ -1,6 +1,7 @@
 const userModel = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const emailService = require("../services/email.service");
+const blacklistModel = require("../models/blacklist.model");
 
 /**
  * - User register controller
@@ -106,7 +107,27 @@ async function userLoginController(req, res) {
   });
 }
 
+/**
+ * - User logout controller
+ * - POST api/auth/logout
+ */
+async function userLogoutController(req, res) {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(400).json({
+      message: "Unaothorized access, Token is required or Already logged out",
+    });
+  }
+  const blacklist = await blacklistModel.create({ token });
+  res.clearCookie("token");
+  res.status(200).json({
+    message: "Logout successful",
+    status: "success",
+  });
+}
+
 module.exports = {
   userRegisterController,
   userLoginController,
+  userLogoutController,
 };
