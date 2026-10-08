@@ -14,4 +14,12 @@ router.post(
   authMiddleware.authMiddleware,
   accountController.createAccountController,
 );
+
+router.get(
+  "/",
+  authMiddleware.authMiddleware,
+  accountController.getUserAccountsController,
+);
+
+router.get("/:accountId", authMiddleware.authMiddleware,accountController.getbalanceController);
 module.exports = router;
