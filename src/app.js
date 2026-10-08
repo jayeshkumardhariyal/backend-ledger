@@ -10,6 +10,12 @@ app.use(cookieParser());
  * -Routes import
  */
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "Welcome to the Ledger API",
+  });
+});
+
 const authRouter = require("./routes/auth.routes");
 const accountRouter = require("./routes/account.routes");
 const transactionRouter = require("./routes/transaction.routes");
