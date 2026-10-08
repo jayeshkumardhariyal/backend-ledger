@@ -1,8 +1,13 @@
 const express = require("express");
 const transactionController = require("../controllers/transaction.controller");
+const authMiddleware = require("../middleware/auth.middleware");
 
-const router = express.Router();
+const transactionRouter = express.Router();
 
-router.post("/", transactionController.createTransaction);
+transactionRouter.post(
+  "/",
+  authMiddleware.authMiddleware,
+  transactionController.createTransaction,
+);
 
-module.exports = router;
+module.exports = transactionRouter;
