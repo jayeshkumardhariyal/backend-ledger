@@ -3,6 +3,7 @@ const ledgerModel = require("../models/ledger.model");
 const accountModel = require("../models/account.model");
 const emailService = require("../services/email.service");
 const mongoose = require("mongoose");
+const userModel = require("../models/user.model");
 
 /**
  * - Create a new transaction
@@ -31,22 +32,33 @@ async function createTransaction(req, res) {
     });
   }
 
-  const fromUserAccount = await accountModel.findById({
-    id: fromAccount,
-  });
-  const toUserAccount = await accountModel.findById({
-    id: toAccount,
+  const fromUserAccount = await accountModel.findOne({
+    _id: fromAccount,
+    user: req.user._id,
   });
 
-  if (!fromUserAccount || !toUserAccount) {
-    return res.status(404).json({ message: "One or both accounts not found" });
+  if (!fromUserAccount) {
+    return res.status(403).json({
+      message: "You are not authorized to debit this account",
+    });
   }
+
+  const toUserAccount = await accountModel.findById(toAccount);
+
+  if (!toUserAccount) {
+    return res.status(404).json({
+      message: "Receiver account not found",
+    });
+  }
+
+  //   console.log("fromUserAccount", fromUserAccount);
+  //   console.log("toUserAccount", toUserAccount);
 
   /**
    * 2. Validate idempotency key
    */
 
-  const isTransactionAlreadyExist = await transactionModel.findOne({
+  const isTransactionAlreadyExists = await transactionModel.findOne({
     idempotencyKey,
   });
 
@@ -138,9 +150,9 @@ async function createTransaction(req, res) {
       { session },
     );
 
-    await (() => {
-      return new Promise((resolve) => setTimeout(resolve, 15 * 1000));
-    })();
+    // await (() => {
+    //   return new Promise((resolve) => setTimeout(resolve, 15 * 1000));
+    // })();
 
     const creditLedgerEntry = await ledgerModel.create(
       [
@@ -178,9 +190,15 @@ async function createTransaction(req, res) {
     toAccount,
   );
 
+  const receiverUser = await userModel.findById(toUserAccount.user);
+
   return res.status(201).json({
     message: "Transaction completed successfully",
     transaction: transaction,
+    userDetails: {
+      sender: req.user.name,
+      receiver: receiverUser.name,
+    },
   });
 }
 
