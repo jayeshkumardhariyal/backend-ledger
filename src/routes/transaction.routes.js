@@ -9,5 +9,10 @@ transactionRouter.post(
   authMiddleware.authMiddleware,
   transactionController.createTransaction,
 );
+transactionRouter.post(
+  "/system/initial-funds",
+  authMiddleware.authSystemUserMiddleware,
+  transactionController.createInitialFundsTransaction,
+);
 
 module.exports = transactionRouter;
